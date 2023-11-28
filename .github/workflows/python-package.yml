@@ -37,8 +37,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        poetry shell
-        pytest
+        poetry run pytest
       env:
         TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
         TEST_FROM_EMAIL: ${{ vars.TEST_FROM_EMAIL }}
