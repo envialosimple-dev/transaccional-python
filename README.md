@@ -26,10 +26,12 @@ params = MailParams(
         from_name='MyCompany Notifications',
         to_email='john.doe@example.com', 
         to_name='John Doe',
+        reply_to='reply@here.com',
         subject='This is a test for {{name}}', 
+        preview_text='A glimpse of what comes next...',
         html='<h1>HTML emails are cool, {{name}}</h1>', 
         text='Text emails are also cool, {{name}}',
-        substitutions={'name': 'John'})
+        context={'name': 'John'})
 
 estr.mail.send(params)
 ```
