@@ -10,6 +10,8 @@ to_email = os.environ.get('TEST_TO_EMAIL')
 to_name = os.environ.get('TEST_TO_NAME')
 subject = os.environ.get('TEST_SUBJECT')
 template_id = os.environ.get('TEST_TEMPLATE_ID')
+reply_to = os.environ.get('TEST_REPLY_TO')
+preview_text = os.environ.get('TEST_PREVIEW_TEXT')
 
 estr = Transaccional(api_key)
 
@@ -80,7 +82,7 @@ def test_integrity_contentconflict():
     params.template_id = template_id
     params.html = "<body>PyTest Basic {{sub}}</body>"
     params.text = "PyTest Basic {{sub}}"
-    params.substitutions = {'sub': 'substitution'}
+    params.context = {'sub': 'substitution'}
 
     with pytest.raises(ValueError):
         estr.mail.send(params)
@@ -96,9 +98,11 @@ def test_basic_send():
     params.to_email = to_email
     params.to_name = to_name
     params.subject = subject
+    params.reply_to = reply_to
+    params.preview_text = preview_text
     params.html = "<body>PyTest Basic {{sub}}</body>"
     params.text = "PyTest Basic {{sub}}"
-    params.substitutions = {'sub': 'substitution'}
+    params.context = {'sub': 'substitution'}
 
     outcome = estr.mail.send(params)
 
@@ -120,7 +124,7 @@ def test_attachment_send():
         from_email=from_email, from_name=from_name,
         to_email=to_email, to_name=to_name,
         subject=subject, html=html, text=text,
-        substitutions={'sub': 'substitution'})
+        context={'sub': 'substitution'})
 
     filename = os.path.join(os.getcwd(), 'tests/logo.png')
 

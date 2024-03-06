@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "envialosimple-transaccional"
-version = "0.1.1"
+version = "0.1.2"
 description = "Python SDK for EnvíaloSimple Transaccional"
 authors = ["Daniel Libonati <daniel.libonati@donweb.com>"]
 readme = "README.md"

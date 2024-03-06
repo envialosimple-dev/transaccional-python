@@ -1,4 +1,5 @@
 import base64
+from warnings import warn
 from typing import TypeVar, TypedDict, Union
 from typing_extensions import Unpack
 
@@ -18,10 +19,13 @@ class MailParamsParams(TypedDict):
     to_email: Union[str, None]
     to_name: Union[str, None]
     subject: Union[str, None]
+    reply_to: Union[str, None]
+    preview_text: Union[str, None]
     template_id: Union[str, None]
     text: Union[str, None]
     html: Union[str, None]
     substitutions: Union[dict, None]
+    context: Union[dict, None]
     attachments: Union[list, None]
     variables: Union[dict, None]
 
@@ -78,10 +82,13 @@ class MailParams():
         self.to_email = kwargs.get('to_email', None)
         self.to_name = kwargs.get('to_name', None)
         self.subject = kwargs.get('subject', None)
+        self.reply_to = kwargs.get('reply_to', None)
+        self.preview_text = kwargs.get('preview_text', None)
         self.template_id = kwargs.get('template_id', None)
         self.text = kwargs.get('text', None)
         self.html = kwargs.get('html', None)
         self.substitutions = kwargs.get('substitutions', {})
+        self.context = kwargs.get('context', {})
         self.attachments = kwargs.get('attachments', [])
         self.variables = kwargs.get('variables', {})
 
@@ -103,6 +110,14 @@ class MailParams():
         self.subject = subject
         return self
 
+    def setPreviewText(self, preview_text: str) -> SelfMailParams:
+        self.preview_text = preview_text
+        return self
+
+    def setReplyTo(self, reply_to: str) -> SelfMailParams:
+        self.reply_to = reply_to
+        return self
+
     def setTemplateID(self, template_id: str) -> SelfMailParams:
         self.template_id = template_id
         return self
@@ -119,7 +134,13 @@ class MailParams():
         self.variables = variables
 
     def setSubstitutions(self, substitutions: dict) -> SelfMailParams:
+        warn('This method is deprecated. Use setContext() instead.',
+             DeprecationWarning)
         self.substitutions = substitutions
+        return self
+
+    def setContext(self, context: dict) -> SelfMailParams:
+        self.context = context
         return self
 
     def addAttachment(self, attachment: Attachment) -> SelfMailParams:
@@ -138,24 +159,32 @@ class MailParams():
         if self.to_email is None:
             raise ValueError('Email address "To" must be set')
 
-        if self.from_email is None:
-            raise ValueError('Email address "From" must be set')
-
-        if self.subject is None:
-            raise ValueError('Subject must be set')
+        if self.template_id is None and \
+           (self.html is None and self.text is None):
+            raise ValueError('No content (html nor text) was provided. '
+                             'Please set either the text or html attributes, '
+                             'or specify a template ID')
 
         if self.template_id is not None and \
            (self.html is not None or self.text is not None):
             raise ValueError('Content (html or text) and templates '
                              'are mutually exclusive')
 
-        if self.template_id is None and \
-           (self.html is None and self.text is None):
-            raise ValueError('No content (html nor text) was provided')
+        if self.template_id is None:
+            if self.from_email is None:
+                raise ValueError('Email address "From" must be set')
+
+            if self.subject is None:
+                raise ValueError('Subject must be set')
 
         for substitution in self.substitutions.values():
             if not self.is_scalar(substitution):
                 raise ValueError('Substitutions can only be scalar values')
+
+        # Copy substitutions to context if necessary
+        if len(self.substitutions.items()) > 0 and \
+           len(self.context.items()) == 0:
+            self.context = self.substitutions
 
         result = {}
 
@@ -177,6 +206,15 @@ class MailParams():
                 'name': self.to_name
             }
 
+        if self.subject is not None:
+            result['subject'] = self.subject
+
+        if self.reply_to is not None:
+            result['reply_to'] = self.reply_to
+
+        if self.preview_text is not None:
+            result['preview_text'] = self.preview_text
+
         # Pass only needed keys
         if self.template_id is not None:
             result['templateID'] = self.template_id
@@ -187,8 +225,7 @@ class MailParams():
                 result['html'] = self.html
 
         # Add remaining keys
-        result['subject'] = self.subject
-        result['substitutions'] = self.substitutions
+        result['context'] = self.context
         result['variables'] = self.variables
 
         # Serialize attachments
