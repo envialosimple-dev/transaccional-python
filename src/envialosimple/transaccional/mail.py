@@ -1,6 +1,6 @@
 import base64
 from warnings import warn
-from typing import TypeVar, TypedDict, Union
+from typing import TypeVar, TypedDict, Union, List
 from typing_extensions import Unpack
 
 SelfMailParams = TypeVar("SelfMailParams", bound="MailParams")
@@ -13,10 +13,15 @@ class AttachmentParams(TypedDict):
     filename: Union[str, None]
 
 
+class Recipient(TypedDict):
+    email: str
+    name: Union[str, None]
+
+
 class MailParamsParams(TypedDict):
     from_email: Union[str, None]
     from_name: Union[str, None]
-    to_email: Union[str, None]
+    to_email: Union[str, None, List[Recipient]]
     to_name: Union[str, None]
     subject: Union[str, None]
     reply_to: Union[str, None]
@@ -93,7 +98,7 @@ class MailParams():
         self.variables = kwargs.get('variables', {})
 
     def setTo(self,
-              to_email: str,
+              to_email: Union[str, List[Recipient]],
               to_name: Union[str, None]) -> SelfMailParams:
         self.to_email = to_email
         self.to_name = to_name
@@ -197,8 +202,8 @@ class MailParams():
                 'name': self.from_name
             }
 
-        # Pass only email if no name was provided
-        if self.to_name is None:
+        # Pass only email if no name was provided or if email is a list with emails
+        if self.to_name is None or isinstance(self.to_email, List):
             result['to'] = self.to_email
         else:
             result['to'] = {

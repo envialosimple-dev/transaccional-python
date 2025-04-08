@@ -1,5 +1,6 @@
 import os
 import pytest
+from typing import List
 from envialosimple.transaccional import Transaccional
 from envialosimple.transaccional.mail import MailParams, Attachment
 
@@ -7,7 +8,11 @@ api_key = os.environ.get('TEST_API_KEY')
 from_email = os.environ.get('TEST_FROM_EMAIL')
 from_name = os.environ.get('TEST_FROM_NAME')
 to_email = os.environ.get('TEST_TO_EMAIL')
+second_to_email = os.environ.get('TEST_SECOND_TO_EMAIL')
+third_to_email = os.environ.get('TEST_THIRD_TO_EMAIL')
 to_name = os.environ.get('TEST_TO_NAME')
+second_to_name = os.environ.get('TEST_SECOND_TO_NAME')
+third_to_name = os.environ.get('TEST_THIRD_TO_NAME')
 subject = os.environ.get('TEST_SUBJECT')
 template_id = os.environ.get('TEST_TEMPLATE_ID')
 reply_to = os.environ.get('TEST_REPLY_TO')
@@ -110,6 +115,33 @@ def test_basic_send():
     assert ('id' in outcome)
     assert ('queued' in outcome)
     assert (outcome['queued'] is True)
+
+
+def test_multiple_to_send():
+    """
+    Send an E-Mail with Multiple recipients
+    """
+    params = MailParams()
+    params.from_email = from_email
+    params.from_name = from_name
+    params.to_email = [
+        {"email": to_email, "name": to_name},
+        {"email": second_to_email, "name": second_to_name},
+        {"email": third_to_email}
+    ]
+    params.subject = subject
+    params.reply_to = reply_to
+    params.preview_text = preview_text
+    params.html = "<body>PyTest Multiple recipients {{sub}}</body>"
+    params.text = "PyTest Multiple recipients {{sub}}"
+    params.context = {'sub': 'substitution'}
+
+    outcome = estr.mail.send(params)
+    
+    assert (type(outcome) is list)
+    assert ('id' in outcome[0])
+    assert ('queued' in outcome[0])
+    assert (outcome[0]['queued'] is True)
 
 
 def test_attachment_send():
