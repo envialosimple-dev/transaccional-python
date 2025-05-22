@@ -21,8 +21,8 @@ class HttpClient():
 
         if http_code == 500:
             raise ValueError(f'The server responded with code {http_code}')
-        
-        if type(json_response) is not dict and type(json_response) is not list:
+
+        if not isinstance(json_response, (dict, list)):
             raise ValueError('The server did not respond with JSON')
 
         return (http_code, json_response)

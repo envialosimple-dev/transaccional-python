@@ -163,6 +163,9 @@ class MailParams():
         # Integrity Checks
         if self.to_email is None:
             raise ValueError('Email address "To" must be set')
+        if isinstance(self.to_email, List):
+            if len(self.to_email) > 10:
+                raise ValueError('You can only send to 10 recipients at a time')
 
         if self.template_id is None and \
            (self.html is None and self.text is None):
@@ -181,6 +184,10 @@ class MailParams():
 
             if self.subject is None:
                 raise ValueError('Subject must be set')
+
+        if self.preview_text is not None and \
+           len(self.preview_text) > 150:
+            raise ValueError('Preview text must be less than 150 characters')
 
         for substitution in self.substitutions.values():
             if not self.is_scalar(substitution):
